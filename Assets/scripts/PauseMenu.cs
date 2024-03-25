@@ -91,6 +91,10 @@ public class PauseMenu : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
     }
+    public void GoToMainMenuplustwo()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 2);
+    }
     private IEnumerator turnOnMainMenuButton(float delay)
     {
         yield return new WaitForSeconds(delay);

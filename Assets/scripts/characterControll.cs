@@ -18,13 +18,15 @@ public class PlayerController : MonoBehaviour
     public bool canMove = true;
     public HealthBar player;
     public HealthBar enemy;
+    public EnemyController enemyfighter;
     public PauseMenu menu;
+    private float fixedYPosition;
     private void Start()
     {
         // Lock and hide the cursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
+        fixedYPosition = transform.position.y;
         // Get the CharacterController component attached to this object
         controller = GetComponent<CharacterController>();
     }
@@ -45,22 +47,23 @@ public class PlayerController : MonoBehaviour
     } 
     public void ToggleIsPunching()
     {
-        attribute.PlayerIsPunching = !attribute.PlayerIsPunching;
+        attribute.PlayerIsPunching = false;
     }
     private void Update()
     {
         if(player.slider.value <= 0)
         {
+            enemyfighter.canMove = false;
+            animator.SetTrigger("knockout");
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            Debug.Log("you lose");
             menu.GameOverLose();
         }
         if(enemy.slider.value <= 0)
         {
+            enemyfighter.canMove = false;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            Debug.Log("you win");
             menu.GameOverWin();
         }
         if(canMove)
@@ -68,7 +71,7 @@ public class PlayerController : MonoBehaviour
             // Get input for movement
             float moveVertical = Input.GetAxis("Vertical");
             float moveHorizontal = Input.GetAxis("Horizontal");
-
+            
             // Calculate movement vector relative to the camera's forward direction
             Vector3 cameraForward = mainCamera.transform.forward;
             Vector3 cameraRight = mainCamera.transform.right;
@@ -78,15 +81,18 @@ public class PlayerController : MonoBehaviour
             cameraRight.Normalize();
 
             movement = cameraForward * moveVertical + cameraRight * moveHorizontal;
+
             animator.SetBool("walkForward", moveVertical > 0f);
-            animator.SetBool("walkBackward", moveVertical < 0f);
-            animator.SetBool("walkRight", moveHorizontal > 0f);
-            animator.SetBool("walkLeft", moveHorizontal < 0f);
+            //animator.SetBool("walkBackward", moveVertical < 0f);
+            //animator.SetBool("walkRight", moveHorizontal > 0f);
+            //animator.SetBool("walkLeft", moveHorizontal < 0f);
             animator.SetBool("idle", moveVertical == 0f && moveHorizontal == 0f);
 
             // Move the character using the CharacterController
             controller.Move(movement * moveSpeed * Time.deltaTime);
-
+        Vector3 currentPosition = transform.position;
+        currentPosition.y = fixedYPosition;
+        transform.position = currentPosition;
             // Get mouse input for rotation
             mouseX = Input.GetAxis("Mouse X") * rotateSpeed;
 
@@ -97,11 +103,11 @@ public class PlayerController : MonoBehaviour
             // animator.SetBool("isMoving", moveVertical != 0f || moveHorizontal != 0f);
 
             // Check if the left mouse button is clicked
-            if (Input.GetMouseButtonDown(0) && !attribute.PlayerIsPunching)
+            if (Input.GetMouseButtonDown(0))
             {
                 // Trigger the "attack" animation
                 isAttacking = true;
-                Invoke("ResetPlayerAttacking", 1f);
+                attribute.PlayerIsPunching = true;
                 animator.SetTrigger("Attack");
             }
             if (Input.GetMouseButtonDown(1))
@@ -109,10 +115,11 @@ public class PlayerController : MonoBehaviour
                 // Trigger the "attack" animation
                 isBlocking = true;
                 animator.SetBool("block",true);
-            } else if (Input.GetMouseButtonUp(1)){
+            }
+            if (Input.GetMouseButtonUp(1)){
                 isBlocking = false;
                 animator.SetBool("block",false);
-            }    
+            }
         }
     }
 }

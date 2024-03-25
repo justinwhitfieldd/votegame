@@ -11,11 +11,10 @@ public class MainMenu : MonoBehaviour
     }
     public void PlayBlue()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 2);
     }
     public void Quit()
     {
         Application.Quit();
-        Debug.Log("Player has quit.");
     }
 }

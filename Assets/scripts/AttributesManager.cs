@@ -25,11 +25,9 @@ public class AttributesManager : MonoBehaviour
         {
             playerAudioSource.clip = blockSound;
             playerAudioSource.PlayOneShot(playerAudioSource.clip);
-            Debug.Log("player blocked");
         }else{
             playerAudioSource.clip = punchSound;
             playerAudioSource.PlayOneShot(playerAudioSource.clip);
-            Debug.Log("Player Taking Damage");
             health -= amount;
             healthbar.SetHealth(health);
         }

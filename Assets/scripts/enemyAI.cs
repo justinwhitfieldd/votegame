@@ -18,11 +18,13 @@ public class EnemyController : MonoBehaviour
     private bool isMoving = false;
     private float moveTimer = 0f;
     private Vector3 targetPosition;
+    public HealthBar enemy;
     public float offset = 0f;
     public Transform finalPunchPosition;
     public Collider playerCollider;
     public bool isAttacking=false;
     public bool contactMade = false;
+    public bool canMove = true;
     private void OnAnimatorMove()
     {
         // Apply root motion to the enemy's position
@@ -35,6 +37,13 @@ public class EnemyController : MonoBehaviour
     }
     private void Update()
     {
+        if(enemy.slider.value <= 0)
+        {
+            canMove = false;
+            Debug.Log("enemy die");
+            animator.SetTrigger("knockout");
+        }
+
         if(playerAttribute.PlayerIsPunching)
         {
             if(Random.value <= blockChance && !isBlocking)
@@ -43,70 +52,72 @@ public class EnemyController : MonoBehaviour
                 isBlocking = true;
             }
         }
-        // Rotate the enemy to face the player
-        Vector3 direction = player.position - transform.position;
-        direction.y = 0f;
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        
-        // Apply the offset as a rotation around the y-axis
-        // This allows for a more controlled adjustment to the enemy's facing direction
-        targetRotation *= Quaternion.Euler(0, offset, 0);
-        
-        // Smoothly rotate the enemy towards the target rotation
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        
-        // Calculate the distance between the enemy and the player
-        float distance = Vector3.Distance(transform.position, player.position);
-        
-        if (!isMoving)
+        if(canMove)
         {
-            // Generate random movement duration and destination
-            float moveDuration = Random.Range(minMoveDuration, maxMoveDuration);
-            Vector3 randomDirection = Random.insideUnitSphere * Random.Range(minDistance, maxDistance);
-            targetPosition = player.position;
-            targetPosition.y = transform.position.y; // Maintain the same height as the enemy
-            moveTimer = moveDuration;
-            if (Vector3.Distance(transform.position, targetPosition) > MinPlayerDistance)
-            {
-                isMoving = true;
-            }
-        }
-        
-        if (isMoving)
-        {
-            // Move towards the target position using root motion
-            Vector3 moveDirection = (targetPosition - transform.position).normalized;
-            animator.SetFloat("MoveSpeed", 1f);
+            // Rotate the enemy to face the player
+            Vector3 direction = player.position - transform.position;
+            direction.y = 0f;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
             
-            // Check if the enemy has reached the target position or the move timer has expired
-            if (Vector3.Distance(transform.position, targetPosition) <= MinPlayerDistance)
-            {
-                isMoving = false;
-                animator.SetFloat("MoveSpeed", 0f);
-            }
+            // Apply the offset as a rotation around the y-axis
+            // This allows for a more controlled adjustment to the enemy's facing direction
+            targetRotation *= Quaternion.Euler(0, offset, 0);
             
-            moveTimer -= Time.deltaTime;
-        }
-        
-        // Check if the player is within attack range
-        if (!isAttacking)
-        {
-            // Check if the final punch position is inside the player character
-            if (playerCollider.bounds.Contains(finalPunchPosition.position))
+            // Smoothly rotate the enemy towards the target rotation
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            
+            // Calculate the distance between the enemy and the player
+            float distance = Vector3.Distance(transform.position, player.position);
+            
+            if (!isMoving)
             {
-                // Randomly decide whether to attack or not
-                if (Random.value <= attackProbability)
+                // Generate random movement duration and destination
+                float moveDuration = Random.Range(minMoveDuration, maxMoveDuration);
+                Vector3 randomDirection = Random.insideUnitSphere * Random.Range(minDistance, maxDistance);
+                targetPosition = player.position;
+                targetPosition.y = transform.position.y; // Maintain the same height as the enemy
+                moveTimer = moveDuration;
+                if (Vector3.Distance(transform.position, targetPosition) > MinPlayerDistance)
                 {
-                    isAttacking = true;
-                    Invoke("ResetEnemyAttacking", 1.5f);
-                    animator.SetTrigger("Attack");
+                    isMoving = true;
                 }
             }
+            
+            if (isMoving)
+            {
+                // Move towards the target position using root motion
+                Vector3 moveDirection = (targetPosition - transform.position).normalized;
+                animator.SetFloat("MoveSpeed", 1f);
+                
+                // Check if the enemy has reached the target position or the move timer has expired
+                if (Vector3.Distance(transform.position, targetPosition) <= MinPlayerDistance)
+                {
+                    isMoving = false;
+                    animator.SetFloat("MoveSpeed", 0f);
+                }
+                
+                moveTimer -= Time.deltaTime;
+            }
+            
+            // Check if the player is within attack range
+            if (!isAttacking)
+            {
+                // Check if the final punch position is inside the player character
+                if (playerCollider.bounds.Contains(finalPunchPosition.position))
+                {
+                    // Randomly decide whether to attack or not
+                    if (Random.value <= attackProbability)
+                    {
+                        isAttacking = true;
+                        Invoke("ResetEnemyAttacking", 1.5f);
+                        animator.SetTrigger("Attack");
+                    }
+                }
+            }
+            // Update animator parameters
+            animator.SetBool("isWalking", isMoving);
+            animator.SetBool("isWalkingBackward", false);
         }
-        
-        // Update animator parameters
-        animator.SetBool("isWalking", isMoving);
-        animator.SetBool("isWalkingBackward", false);
     }
     
     public void OnPlayerAttack()

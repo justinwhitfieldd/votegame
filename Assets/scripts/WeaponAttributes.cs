@@ -13,7 +13,6 @@ public class WeaponAttributes : MonoBehaviour
             if(other.CompareTag("Enemy") && atm.PlayerIsPunching)
             {
                 player.contactMade = true;
-                Debug.Log("enemy has been hit");
                 other.GetComponent<EnemyAttributesManager>().TakeDamage(atm.attack);
             }
         }

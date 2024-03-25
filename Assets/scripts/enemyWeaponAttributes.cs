@@ -15,7 +15,6 @@ public class enemyWeaponAttributes : MonoBehaviour
             if(other.CompareTag("Player") && enemy.isAttacking)
             {
                 enemy.contactMade = true;
-                Debug.Log("Player Has Been Hit hit");
                 player.TakeDamage(atm.attack);
             }
         }
